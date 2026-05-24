@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap');
+@import 'tailwindcss';
+
+:root {
+  --color-bg: #121212;
+}
+
+@theme {
+  /* ===== Colores ===== */
+  --color-surface: #1E1E1E;
+  --color-border: #2C2C2C;
+  --color-accent: #FACC15;
+  --color-accent-fg: #171717;
+  --color-fg: #F9FAFB;
+  --color-muted: #9CA3AF;
+
+  /* Categorías */
+  --color-cat-comida: #F97316;
+  --color-cat-casa: #3B82F6;
+  --color-cat-ocio: #A855F7;
+  --color-cat-familia: #34D399;
+
+  /* ===== Tipografías ===== */
+  --font-display: 'Lato', sans-serif;
+  --font-sans: 'Roboto', sans-serif;
+  --font-mono: 'Roboto Mono', monospace;
+
+  /* ===== Radios ===== */
+  --radius-card: 16px;
+  --radius-pill: 999px;
+  --radius-btn: 12px;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}

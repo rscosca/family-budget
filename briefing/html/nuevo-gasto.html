@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Family Budget — Nuevo Gasto</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #121212;
+      --surface: #1E1E1E;
+      --border: #2C2C2C;
+      --accent: #FACC15;
+      --accent-text: #171717;
+      --text-primary: #F9FAFB;
+      --text-secondary: #9CA3AF;
+      --cat-comida:  #F97316;
+      --cat-casa:    #3B82F6;
+      --cat-ocio:    #A855F7;
+      --cat-familia: #34D399;
+      --font-display: 'Lato', sans-serif;
+      --font-body: 'Roboto', sans-serif;
+      --font-mono: 'Roboto Mono', monospace;
+      --radius-card: 16px;
+      --radius-pill: 999px;
+      --radius-btn: 12px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .phone-frame {
+      width: 390px;
+      min-height: 844px;
+      margin: 40px auto;
+      background: var(--bg);
+      border-radius: 44px;
+      border: 3px solid #2A2A2A;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 24px 80px rgba(0,0,0,.5);
+    }
+    .dynamic-island {
+      width: 126px;
+      height: 36px;
+      background: #000;
+      border-radius: 20px;
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 28px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      height: 54px;
+    }
+    .status-bar__icons { display: flex; gap: 6px; align-items: center; }
+
+    /* ===== SCREEN ===== */
+    .screen {
+      padding: 0 var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      min-height: calc(844px - 54px);
+    }
+
+    /* Nav header */
+    .nav-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: var(--space-md) 0 var(--space-lg);
+    }
+    .nav-header__back {
+      position: absolute;
+      left: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .nav-header__back {
+      color: var(--text-primary);
+    }
+    .nav-header__back svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2 !important;
+    }
+    .nav-header__title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Amount input */
+    .amount-section {
+      flex: 0 0 auto;
+      text-align: center;
+      padding: var(--space-xl) 0 var(--space-xl);
+    }
+    .amount-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-sm);
+    }
+    .amount-value {
+      font-family: var(--font-mono);
+      font-size: 48px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .amount-currency {
+      font-size: 28px;
+      color: var(--text-secondary);
+      vertical-align: super;
+      margin-left: 4px;
+    }
+
+    /* Description */
+    .desc-section {
+      margin-bottom: var(--space-lg);
+    }
+    .desc-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-sm);
+      font-family: var(--font-display);
+      font-weight: 600;
+    }
+    .desc-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      padding: 14px var(--space-md);
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--text-primary);
+      outline: none;
+    }
+    .desc-input::placeholder { color: var(--text-secondary); }
+    .desc-input:focus { border-color: var(--accent); }
+
+    /* Category dropdown */
+    .cat-section {
+      margin-bottom: var(--space-xl);
+    }
+    .cat-label {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--space-md);
+    }
+    .cat-dropdown {
+      position: relative;
+    }
+    .cat-dropdown__trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 14px var(--space-md);
+      cursor: pointer;
+      transition: border-color .2s ease;
+    }
+    .cat-dropdown__trigger:hover,
+    .cat-dropdown--open .cat-dropdown__trigger {
+      border-color: var(--text-secondary);
+    }
+    .cat-dropdown__trigger--has-value {
+      border-color: var(--cat-color);
+    }
+    .cat-dropdown__trigger--has-value:hover,
+    .cat-dropdown--open .cat-dropdown__trigger--has-value {
+      border-color: var(--cat-color);
+    }
+    .cat-dropdown__icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background .2s ease;
+    }
+    .cat-dropdown__trigger--has-value .cat-dropdown__icon {
+      background: color-mix(in srgb, var(--cat-color) 18%, transparent);
+    }
+    .cat-dropdown__icon {
+      color: var(--text-primary);
+      transition: color .2s ease;
+    }
+    .cat-dropdown__icon svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 1.8 !important;
+    }
+    .cat-dropdown__trigger--has-value .cat-dropdown__icon {
+      color: var(--cat-color);
+    }
+    .cat-dropdown__text {
+      flex: 1;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: color .2s ease;
+    }
+    .cat-dropdown__trigger--has-value .cat-dropdown__text {
+      color: var(--cat-color);
+    }
+    .cat-dropdown__chevron {
+      color: var(--text-secondary);
+      flex-shrink: 0;
+      transition: transform .2s ease;
+    }
+    .cat-dropdown__chevron svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2 !important;
+    }
+    .cat-dropdown--open .cat-dropdown__chevron {
+      transform: rotate(180deg);
+    }
+
+    /* Dropdown list */
+    .cat-dropdown__list {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: var(--space-sm) 0;
+      max-height: 260px;
+      overflow-y: auto;
+      z-index: 20;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: opacity .2s ease, transform .2s ease, visibility .2s ease;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    }
+    .cat-dropdown--open .cat-dropdown__list {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .cat-dropdown__list::-webkit-scrollbar {
+      width: 4px;
+    }
+    .cat-dropdown__list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .cat-dropdown__list::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+    .cat-dropdown__option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px var(--space-md);
+      cursor: pointer;
+      transition: background .15s ease;
+    }
+    .cat-dropdown__option:hover {
+      background: rgba(255,255,255,.04);
+    }
+    .cat-dropdown__option--selected {
+      background: color-mix(in srgb, var(--cat-color) 8%, transparent);
+    }
+    .cat-dropdown__option-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background .15s ease;
+    }
+    .cat-dropdown__option--selected .cat-dropdown__option-icon {
+      background: color-mix(in srgb, var(--cat-color) 18%, transparent);
+    }
+    .cat-dropdown__option-icon {
+      color: var(--text-primary);
+      transition: color .15s ease;
+    }
+    .cat-dropdown__option-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 1.8 !important;
+    }
+    .cat-dropdown__option--selected .cat-dropdown__option-icon {
+      color: var(--cat-color);
+    }
+    .cat-dropdown__option-name {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: color .15s ease;
+    }
+    .cat-dropdown__option--selected .cat-dropdown__option-name {
+      color: var(--cat-color);
+    }
+    .cat-dropdown__option-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cat-color);
+      margin-left: auto;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity .15s ease;
+    }
+    .cat-dropdown__option--selected .cat-dropdown__option-dot {
+      opacity: 1;
+    }
+
+    /* Date row */
+    .date-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      padding: 14px var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+    .date-row__label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .date-row__value {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    /* CTA */
+    .cta-area {
+      margin-top: auto;
+      padding-bottom: 48px;
+    }
+    .cta-btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: var(--accent-text);
+      border: none;
+      border-radius: var(--radius-btn);
+      font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    /* Home indicator */
+    .home-indicator {
+      width: 134px;
+      height: 5px;
+      background: var(--text-primary);
+      border-radius: 3px;
+      margin: 0 auto 10px;
+      opacity: .3;
+    }
+
+    @media (max-width: 430px) {
+      .phone-frame {
+        width: 100%;
+        min-height: 100vh;
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-bar__icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><rect x="0" y="3" width="3" height="9" rx="1" fill="#F9FAFB"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="1" fill="#F9FAFB"/><rect x="9" y="0" width="3" height="12" rx="1" fill="#F9FAFB"/><rect x="13.5" y="0" width="2.5" height="12" rx="1" fill="#4B5563"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2C5.5 2 3.2 3 1.5 4.7L0 3.2C2.1 1.2 4.9 0 8 0s5.9 1.2 8 3.2L14.5 4.7C12.8 3 10.5 2 8 2z" fill="#F9FAFB"/><path d="M8 6c-1.7 0-3.2.7-4.3 1.8L2.2 6.3C3.7 4.9 5.7 4 8 4s4.3.9 5.8 2.3L12.3 7.8C11.2 6.7 9.7 6 8 6z" fill="#F9FAFB"/><circle cx="8" cy="10" r="2" fill="#F9FAFB"/></svg>
+      <svg width="27" height="12" viewBox="0 0 27 12" fill="none"><rect x="0" y="1" width="23" height="10" rx="3" stroke="#F9FAFB" stroke-opacity=".35" stroke-width="1"/><rect x="1.5" y="2.5" width="17" height="7" rx="2" fill="#F9FAFB"/><path d="M25 5v2.5a1.5 1.5 0 000-2.5z" fill="#F9FAFB" opacity=".4"/></svg>
+    </div>
+  </div>
+
+  <div class="screen">
+    <!-- Nav header -->
+    <div class="nav-header">
+      <a href="dashboard.html" class="nav-header__back">
+        <i data-lucide="chevron-left"></i>
+      </a>
+      <span class="nav-header__title">Anadir Gasto</span>
+    </div>
+
+    <!-- Amount -->
+    <div class="amount-section">
+      <div class="amount-label">Cantidad</div>
+      <div class="amount-value">0,00<span class="amount-currency">&euro;</span></div>
+    </div>
+
+    <!-- Description -->
+    <div class="desc-section">
+      <div class="desc-label">Descripcion</div>
+      <input class="desc-input" type="text" placeholder="Ej. Compra semanal, Luz, Cine..." />
+    </div>
+
+    <!-- Category dropdown -->
+    <div class="cat-section">
+      <div class="cat-label">Categoria</div>
+      <div class="cat-dropdown" id="catDropdown">
+        <!-- Trigger (shows selected category or placeholder) -->
+        <div class="cat-dropdown__trigger cat-dropdown__trigger--has-value" id="catTrigger" style="--cat-color:var(--cat-casa)">
+          <div class="cat-dropdown__icon">
+            <i data-lucide="house"></i>
+          </div>
+          <span class="cat-dropdown__text">Casa</span>
+          <span class="cat-dropdown__chevron"><i data-lucide="chevron-down"></i></span>
+        </div>
+        <!-- Options list -->
+        <div class="cat-dropdown__list" id="catList">
+          <div class="cat-dropdown__option" data-cat="familia" data-color="var(--cat-familia)" data-icon="users" style="--cat-color:var(--cat-familia)">
+            <div class="cat-dropdown__option-icon">
+              <i data-lucide="users"></i>
+            </div>
+            <span class="cat-dropdown__option-name">Familia</span>
+            <span class="cat-dropdown__option-dot"></span>
+          </div>
+          <div class="cat-dropdown__option cat-dropdown__option--selected" data-cat="casa" data-color="var(--cat-casa)" data-icon="house" style="--cat-color:var(--cat-casa)">
+            <div class="cat-dropdown__option-icon">
+              <i data-lucide="house"></i>
+            </div>
+            <span class="cat-dropdown__option-name">Casa</span>
+            <span class="cat-dropdown__option-dot"></span>
+          </div>
+          <div class="cat-dropdown__option" data-cat="comida" data-color="var(--cat-comida)" data-icon="utensils" style="--cat-color:var(--cat-comida)">
+            <div class="cat-dropdown__option-icon">
+              <i data-lucide="utensils"></i>
+            </div>
+            <span class="cat-dropdown__option-name">Comida</span>
+            <span class="cat-dropdown__option-dot"></span>
+          </div>
+          <div class="cat-dropdown__option" data-cat="ocio" data-color="var(--cat-ocio)" data-icon="circle-play" style="--cat-color:var(--cat-ocio)">
+            <div class="cat-dropdown__option-icon">
+              <i data-lucide="circle-play"></i>
+            </div>
+            <span class="cat-dropdown__option-name">Ocio</span>
+            <span class="cat-dropdown__option-dot"></span>
+          </div>
+          <div class="cat-dropdown__option" data-cat="transporte" data-color="var(--cat-transporte, #06B6D4)" data-icon="car" style="--cat-color:#06B6D4">
+            <div class="cat-dropdown__option-icon">
+              <i data-lucide="car"></i>
+            </div>
+            <span class="cat-dropdown__option-name">Transporte</span>
+            <span class="cat-dropdown__option-dot"></span>
+          </div>
+          <div class="cat-dropdown__option" data-cat="salud" data-color="var(--cat-salud, #EC4899)" data-icon="heart-pulse" style="--cat-color:#EC4899">
+            <div class="cat-dropdown__option-icon">
+              <i data-lucide="heart-pulse"></i>
+            </div>
+            <span class="cat-dropdown__option-name">Salud</span>
+            <span class="cat-dropdown__option-dot"></span>
+          </div>
+          <div class="cat-dropdown__option" data-cat="educacion" data-color="var(--cat-educacion, #8B5CF6)" data-icon="book-open" style="--cat-color:#8B5CF6">
+            <div class="cat-dropdown__option-icon">
+              <i data-lucide="book-open"></i>
+            </div>
+            <span class="cat-dropdown__option-name">Educacion</span>
+            <span class="cat-dropdown__option-dot"></span>
+          </div>
+          <div class="cat-dropdown__option" data-cat="ropa" data-color="var(--cat-ropa, #F472B6)" data-icon="shirt" style="--cat-color:#F472B6">
+            <div class="cat-dropdown__option-icon">
+              <i data-lucide="shirt"></i>
+            </div>
+            <span class="cat-dropdown__option-name">Ropa</span>
+            <span class="cat-dropdown__option-dot"></span>
+          </div>
+          <div class="cat-dropdown__option" data-cat="mascotas" data-color="var(--cat-mascotas, #FB923C)" data-icon="paw-print" style="--cat-color:#FB923C">
+            <div class="cat-dropdown__option-icon">
+              <i data-lucide="paw-print"></i>
+            </div>
+            <span class="cat-dropdown__option-name">Mascotas</span>
+            <span class="cat-dropdown__option-dot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date -->
+    <div class="date-row">
+      <span class="date-row__label">Fecha</span>
+      <span class="date-row__value">20 May 2026</span>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-area">
+      <button class="cta-btn">Guardar Gasto</button>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>
+  lucide.createIcons();
+
+  const dropdown = document.getElementById('catDropdown');
+  const trigger = document.getElementById('catTrigger');
+  const list = document.getElementById('catList');
+
+  // Toggle open/close
+  trigger.addEventListener('click', () => {
+    dropdown.classList.toggle('cat-dropdown--open');
+  });
+
+  // Close when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!dropdown.contains(e.target)) {
+      dropdown.classList.remove('cat-dropdown--open');
+    }
+  });
+
+  // Select option
+  list.querySelectorAll('.cat-dropdown__option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      // Remove selected from all
+      list.querySelectorAll('.cat-dropdown__option').forEach(o =>
+        o.classList.remove('cat-dropdown__option--selected')
+      );
+      opt.classList.add('cat-dropdown__option--selected');
+
+      // Update trigger icon via Lucide
+      const iconName = opt.dataset.icon;
+      const name = opt.querySelector('.cat-dropdown__option-name').textContent;
+      const color = opt.style.getPropertyValue('--cat-color');
+
+      const triggerIcon = trigger.querySelector('.cat-dropdown__icon');
+      triggerIcon.innerHTML = '<i data-lucide="' + iconName + '"></i>';
+      lucide.createIcons({ nodes: [triggerIcon] });
+
+      trigger.querySelector('.cat-dropdown__text').textContent = name;
+      trigger.style.setProperty('--cat-color', color);
+      trigger.classList.add('cat-dropdown__trigger--has-value');
+
+      // Close dropdown
+      dropdown.classList.remove('cat-dropdown--open');
+    });
+  });
+</script>
+
+</body>
+</html>

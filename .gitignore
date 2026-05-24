@@ -1,0 +1,20 @@
+# macOS / OS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+
+# Editores e IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs y temporales sueltos en raíz
+*.log
+*.tmp
+
+# Configuración local de Claude Code (mantiene los settings compartidos)
+.claude/settings.local.json

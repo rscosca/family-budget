@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Family Budget — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== DESIGN TOKENS ===== */
+    :root {
+      --bg: #121212;
+      --surface: #1E1E1E;
+      --border: #2C2C2C;
+      --accent: #FACC15;
+      --accent-text: #171717;
+      --text-primary: #F9FAFB;
+      --text-secondary: #9CA3AF;
+      --cat-comida:  #F97316;
+      --cat-casa:    #3B82F6;
+      --cat-ocio:    #A855F7;
+      --cat-familia: #34D399;
+      --font-display: 'Lato', sans-serif;
+      --font-body: 'Roboto', sans-serif;
+      --font-mono: 'Roboto Mono', monospace;
+      --radius-card: 16px;
+      --radius-pill: 999px;
+      --radius-btn: 12px;
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      --space-2xl: 48px;
+    }
+
+    /* ===== RESET ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-weight: 400;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ===== MOBILE SHELL ===== */
+    .phone-frame {
+      width: 390px;
+      min-height: 844px;
+      margin: 40px auto;
+      background: var(--bg);
+      border-radius: 44px;
+      border: 3px solid #2A2A2A;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 24px 80px rgba(0,0,0,.5);
+    }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 28px 0;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font-body);
+      color: var(--text-primary);
+      height: 54px;
+    }
+    .status-bar__icons {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* Dynamic Island */
+    .dynamic-island {
+      width: 126px;
+      height: 36px;
+      background: #000;
+      border-radius: 20px;
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+
+    /* Home indicator */
+    .home-indicator {
+      width: 134px;
+      height: 5px;
+      background: var(--text-primary);
+      border-radius: 3px;
+      margin: 0 auto 10px;
+      opacity: .3;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* ===== SCREEN CONTENT ===== */
+    .screen {
+      padding: 0 var(--space-lg);
+      padding-bottom: 100px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-md) 0 var(--space-lg);
+    }
+    .header__greeting {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+    .header__sub {
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .header__avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--accent);
+    }
+
+    /* Pills */
+    .pills {
+      display: flex;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-lg);
+    }
+    .pill {
+      padding: 8px 20px;
+      border-radius: var(--radius-pill);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      background: var(--border);
+      border: none;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .pill--active {
+      background: var(--accent);
+      color: var(--accent-text);
+      font-weight: 500;
+    }
+
+    /* Chart card */
+    .chart-card {
+      background: var(--surface);
+      border-radius: var(--radius-card);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+      border: 1px solid var(--border);
+    }
+    .chart-card__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-md);
+    }
+    .chart-card__title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .chart-card__toggle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--border);
+      border: none;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      font-family: var(--font-body);
+    }
+
+    /* Donut chart */
+    .donut-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-lg);
+      padding: var(--space-md) 0;
+    }
+    .donut-wrap {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      flex-shrink: 0;
+    }
+    .donut-wrap svg {
+      width: 150px;
+      height: 150px;
+      transform: rotate(-90deg);
+    }
+    .donut-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .donut-center__amount {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+    .donut-center__label {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .legend {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .legend__item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .legend__dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .legend__value {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      color: var(--text-primary);
+      font-size: 13px;
+    }
+
+    /* Bar chart */
+    .bar-chart {
+      display: none;
+      padding: var(--space-sm) 0 var(--space-md);
+    }
+    .bar-chart.visible { display: block; }
+    .donut-container.visible { display: flex; }
+    .donut-container.hidden, .bar-chart.hidden { display: none; }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .bar-row:last-child { margin-bottom: 0; }
+    .bar-label {
+      width: 64px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .bar-track {
+      flex: 1;
+      height: 24px;
+      background: var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width .4s ease;
+    }
+    .bar-amount {
+      width: 60px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-primary);
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Total */
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-top: var(--space-md);
+      padding-top: var(--space-md);
+      border-top: 1px solid var(--border);
+    }
+    .total-row__label {
+      font-family: var(--font-display);
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .total-row__amount {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    /* Section title */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: var(--space-md);
+    }
+
+    /* Transaction list */
+    .tx-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .tx-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .tx-item:last-child { border-bottom: none; }
+    .tx-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .tx-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 1.8 !important;
+    }
+    .tx-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .tx-info__title {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+    .tx-info__date {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .tx-amount {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-primary);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* FAB */
+    .fab {
+      position: absolute;
+      bottom: 32px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(250, 204, 21, .3);
+      cursor: pointer;
+      z-index: 5;
+    }
+    .fab {
+      color: var(--accent-text);
+    }
+    .fab svg {
+      width: 26px;
+      height: 26px;
+      stroke-width: 2.5 !important;
+    }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0 24px;
+    }
+    .bottom-nav__item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .bottom-nav__item svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 1.8 !important;
+    }
+    .bottom-nav__item span {
+      font-size: 10px;
+      font-family: var(--font-body);
+      font-weight: 500;
+    }
+    .bottom-nav__item--active { color: var(--accent); }
+    .bottom-nav__item--inactive { color: var(--text-secondary); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 430px) {
+      .phone-frame {
+        width: 100%;
+        min-height: 100vh;
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+      }
+    }
+    @media (min-width: 431px) and (max-width: 767px) {
+      .phone-frame {
+        width: 390px;
+      }
+    }
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .phone-frame {
+        width: 390px;
+      }
+    }
+    @media (min-width: 1024px) {
+      .phone-frame {
+        width: 390px;
+        margin: 48px auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <!-- Dynamic Island -->
+  <div class="dynamic-island"></div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-bar__icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><rect x="0" y="3" width="3" height="9" rx="1" fill="#F9FAFB"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="1" fill="#F9FAFB"/><rect x="9" y="0" width="3" height="12" rx="1" fill="#F9FAFB"/><rect x="13.5" y="0" width="2.5" height="12" rx="1" fill="#4B5563"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2C5.5 2 3.2 3 1.5 4.7L0 3.2C2.1 1.2 4.9 0 8 0s5.9 1.2 8 3.2L14.5 4.7C12.8 3 10.5 2 8 2z" fill="#F9FAFB"/><path d="M8 6c-1.7 0-3.2.7-4.3 1.8L2.2 6.3C3.7 4.9 5.7 4 8 4s4.3.9 5.8 2.3L12.3 7.8C11.2 6.7 9.7 6 8 6z" fill="#F9FAFB"/><circle cx="8" cy="10" r="2" fill="#F9FAFB"/></svg>
+      <svg width="27" height="12" viewBox="0 0 27 12" fill="none"><rect x="0" y="1" width="23" height="10" rx="3" stroke="#F9FAFB" stroke-opacity=".35" stroke-width="1"/><rect x="1.5" y="2.5" width="17" height="7" rx="2" fill="#F9FAFB"/><path d="M25 5v2.5a1.5 1.5 0 000-2.5z" fill="#F9FAFB" opacity=".4"/></svg>
+    </div>
+  </div>
+
+  <!-- Screen -->
+  <div class="screen">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <div class="header__greeting">Hola, Familia</div>
+        <div class="header__sub">Mayo 2026</div>
+      </div>
+      <div class="header__avatar">FS</div>
+    </div>
+
+    <!-- Time pills -->
+    <div class="pills">
+      <button class="pill" data-range="day">Dia</button>
+      <button class="pill pill--active" data-range="week">Semana</button>
+      <button class="pill" data-range="month">Mes</button>
+    </div>
+
+    <!-- Chart card -->
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <span class="chart-card__title">Gastos por categoria</span>
+        <button class="chart-card__toggle" id="chartToggle">Barras</button>
+      </div>
+
+      <!-- Donut chart -->
+      <div class="donut-container visible" id="donutView">
+        <div class="donut-wrap">
+          <svg viewBox="0 0 150 150">
+            <!-- Comida 42% -->
+            <circle cx="75" cy="75" r="58" fill="none" stroke="var(--cat-comida)" stroke-width="18"
+              stroke-dasharray="153.4 213.2" stroke-dashoffset="0" />
+            <!-- Casa 28% -->
+            <circle cx="75" cy="75" r="58" fill="none" stroke="var(--cat-casa)" stroke-width="18"
+              stroke-dasharray="102.0 264.6" stroke-dashoffset="-153.4" />
+            <!-- Ocio 18% -->
+            <circle cx="75" cy="75" r="58" fill="none" stroke="var(--cat-ocio)" stroke-width="18"
+              stroke-dasharray="65.6 301.0" stroke-dashoffset="-255.4" />
+            <!-- Familia 12% -->
+            <circle cx="75" cy="75" r="58" fill="none" stroke="var(--cat-familia)" stroke-width="18"
+              stroke-dasharray="43.8 322.8" stroke-dashoffset="-321.0" />
+          </svg>
+          <div class="donut-center">
+            <div class="donut-center__amount">1.247,50</div>
+            <div class="donut-center__label">EUR total</div>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="legend__item">
+            <span class="legend__dot" style="background:var(--cat-comida)"></span>
+            Comida
+            <span class="legend__value">524,10</span>
+          </div>
+          <div class="legend__item">
+            <span class="legend__dot" style="background:var(--cat-casa)"></span>
+            Casa
+            <span class="legend__value">349,30</span>
+          </div>
+          <div class="legend__item">
+            <span class="legend__dot" style="background:var(--cat-ocio)"></span>
+            Ocio
+            <span class="legend__value">224,60</span>
+          </div>
+          <div class="legend__item">
+            <span class="legend__dot" style="background:var(--cat-familia)"></span>
+            Familia
+            <span class="legend__value">149,50</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bar chart -->
+      <div class="bar-chart hidden" id="barView">
+        <div class="bar-row">
+          <span class="bar-label">Comida</span>
+          <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--cat-comida)"></div></div>
+          <span class="bar-amount">524,10</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Casa</span>
+          <div class="bar-track"><div class="bar-fill" style="width:66.6%;background:var(--cat-casa)"></div></div>
+          <span class="bar-amount">349,30</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Ocio</span>
+          <div class="bar-track"><div class="bar-fill" style="width:42.8%;background:var(--cat-ocio)"></div></div>
+          <span class="bar-amount">224,60</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Familia</span>
+          <div class="bar-track"><div class="bar-fill" style="width:28.5%;background:var(--cat-familia)"></div></div>
+          <span class="bar-amount">149,50</span>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="total-row">
+        <span class="total-row__label">Gasto Total</span>
+        <span class="total-row__amount">1.247,50 &euro;</span>
+      </div>
+    </div>
+
+    <!-- Transactions -->
+    <h2 class="section-title">Ultimos movimientos</h2>
+    <div class="tx-list">
+      <!-- Comida -->
+      <div class="tx-item">
+        <div class="tx-icon" style="background:rgba(249,115,22,.15); color:var(--cat-comida)">
+          <i data-lucide="utensils"></i>
+        </div>
+        <div class="tx-info">
+          <div class="tx-info__title">Supermercado Lidl</div>
+          <div class="tx-info__date">Hoy, 14:32</div>
+        </div>
+        <div class="tx-amount">-67,42 &euro;</div>
+      </div>
+      <!-- Casa -->
+      <div class="tx-item">
+        <div class="tx-icon" style="background:rgba(59,130,246,.15); color:var(--cat-casa)">
+          <i data-lucide="house"></i>
+        </div>
+        <div class="tx-info">
+          <div class="tx-info__title">Factura electricidad</div>
+          <div class="tx-info__date">Ayer, 09:15</div>
+        </div>
+        <div class="tx-amount">-89,20 &euro;</div>
+      </div>
+      <!-- Ocio -->
+      <div class="tx-item">
+        <div class="tx-icon" style="background:rgba(168,85,247,.15); color:var(--cat-ocio)">
+          <i data-lucide="circle-play"></i>
+        </div>
+        <div class="tx-info">
+          <div class="tx-info__title">Netflix</div>
+          <div class="tx-info__date">18 May, 00:01</div>
+        </div>
+        <div class="tx-amount">-17,99 &euro;</div>
+      </div>
+      <!-- Familia -->
+      <div class="tx-item">
+        <div class="tx-icon" style="background:rgba(52,211,153,.15); color:var(--cat-familia)">
+          <i data-lucide="users"></i>
+        </div>
+        <div class="tx-info">
+          <div class="tx-info__title">Material escolar</div>
+          <div class="tx-info__date">17 May, 18:45</div>
+        </div>
+        <div class="tx-amount">-34,15 &euro;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <a href="nuevo-gasto.html" class="fab" aria-label="Nuevo gasto">
+    <i data-lucide="plus"></i>
+  </a>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <a class="bottom-nav__item bottom-nav__item--active" href="dashboard.html">
+      <i data-lucide="house"></i>
+      <span>Inicio</span>
+    </a>
+    <a class="bottom-nav__item bottom-nav__item--inactive" href="historial.html">
+      <i data-lucide="clock"></i>
+      <span>Historial</span>
+    </a>
+    <div style="width:56px"></div>
+    <a class="bottom-nav__item bottom-nav__item--inactive" href="#">
+      <i data-lucide="message-square"></i>
+      <span>Familia</span>
+    </a>
+    <a class="bottom-nav__item bottom-nav__item--inactive" href="#">
+      <i data-lucide="settings"></i>
+      <span>Ajustes</span>
+    </a>
+  </nav>
+  <div class="home-indicator"></div>
+</div>
+
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>
+  lucide.createIcons();
+
+  // Chart toggle
+  const toggle = document.getElementById('chartToggle');
+  const donut = document.getElementById('donutView');
+  const bar = document.getElementById('barView');
+  let showDonut = true;
+  toggle.addEventListener('click', () => {
+    showDonut = !showDonut;
+    donut.classList.toggle('visible', showDonut);
+    donut.classList.toggle('hidden', !showDonut);
+    bar.classList.toggle('visible', !showDonut);
+    bar.classList.toggle('hidden', showDonut);
+    toggle.textContent = showDonut ? 'Barras' : 'Pastel';
+  });
+
+  // Pills
+  document.querySelectorAll('.pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('pill--active'));
+      pill.classList.add('pill--active');
+    });
+  });
+</script>
+
+</body>
+</html>
