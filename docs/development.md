@@ -88,6 +88,35 @@ Necesitas 3 cosas levantadas a la vez:
 
 > En desarrollo, accede siempre por **http://localhost:5173** (no por el `:8000` de Laravel). Vite sirve la UI y la API se consume vía CORS desde la SPA.
 
+### Atajos con `make` (raíz del repo)
+
+```
+make up      # arranca backend + frontend en paralelo (Ctrl+C los para los dos)
+make api     # solo backend (:8000)
+make web     # solo frontend (:5173)
+make stop    # mata procesos de :8000 y :5173
+make seed    # migrate:fresh + DatabaseSeeder (imprime las contraseñas en consola)
+make fresh   # alias de seed
+make migrate # migrate sin reset
+make tinker  # REPL Eloquent
+make routes  # php artisan route:list
+make test    # phpunit/pest (cuando exista)
+make lint    # eslint en frontend
+make fe-build# build de Vite a frontend/dist
+make help    # autodocumentado
+```
+
+MAMP debe estar arrancado antes de `make seed` o `make api` — si no, los comandos PHP fallan al conectar al socket.
+
+### Credenciales por defecto del seeder
+
+| user | password |
+| --- | --- |
+| `papa` (admin) | `P1234_apa` |
+| `mama` (collaborator) | `M1234_ama` |
+
+Si cambias la contraseña desde la app (Ajustes → "Cambiar contraseña" → `PATCH /api/auth/password`), **el seeder NO se entera** — vuelve a aplicar el literal del archivo al ejecutarse. Para conservar la nueva, edita `database/seeders/UserSeeder.php` o evita re-seedear.
+
 ## Comandos útiles
 
 ### Laravel (`cd backend`)
@@ -122,28 +151,22 @@ fbmysql
 
 ## Flujo de autenticación Sanctum (SPA)
 
-Una vez tengamos `/login` implementado, el flujo desde el frontend será:
+Implementado en `frontend/src/lib/api.ts` (`apiFetch` + `ensureCsrf`) y `frontend/src/context/AuthContext.tsx`. Resumen del flujo real:
 
-1. **Inicializar CSRF cookie** (una vez):
+1. **CSRF cookie** — el cliente llama a `GET /sanctum/csrf-cookie` automáticamente antes de la primera mutación (cachea el flag y la cookie):
    ```ts
-   await fetch('http://localhost:8000/sanctum/csrf-cookie', { credentials: 'include' });
+   await fetch('http://localhost:8000/sanctum/csrf-cookie', { credentials: 'include' })
    ```
-2. **Login**:
+2. **Login** — `POST /api/auth/login` con `username` + `password` (no email):
    ```ts
-   await fetch('http://localhost:8000/login', {
-     method: 'POST',
-     credentials: 'include',
-     headers: {
-       'Content-Type': 'application/json',
-       'Accept': 'application/json',
-       'X-XSRF-TOKEN': /* leer cookie XSRF-TOKEN y URL-decodificar */,
-     },
-     body: JSON.stringify({ email, password }),
-   });
+   await apiFetch('/api/auth/login', { method: 'POST', json: { username, password } })
    ```
-3. **Peticiones autenticadas**: cualquier `fetch` con `credentials: 'include'` lleva la cookie de sesión automáticamente.
+3. **Peticiones autenticadas** — `apiFetch` añade `X-XSRF-TOKEN` (URL-decoded) y `credentials: 'include'` en todas las mutaciones.
+4. **Logout** — `POST /api/auth/logout`. El cliente llama además a `resetCsrfCache()` para forzar nuevo CSRF en la próxima petición.
+5. **Hidratación** — al montar la app, `AuthProvider` hace `GET /api/user` (ignora 401 silenciosamente).
+6. **Cambio de contraseña** — `PATCH /api/auth/password` con `current_password` + `password` + `password_confirmation`. La sesión sigue activa tras el cambio.
 
-> El cliente HTTP del proyecto (en `frontend/src/lib/api.ts`, todavía por crear) encapsulará este flujo.
+Pantalla de login en `frontend/src/pages/Login.tsx`; gate de rutas en `frontend/src/components/RequireAuth.tsx`.
 
 ## Resolución de problemas
 

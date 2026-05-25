@@ -1,155 +1,101 @@
 # API · Endpoints
 
-REST sobre Laravel. Prefijo `/api`. Autenticación con Sanctum (cookies httpOnly), por lo que las rutas autenticadas requieren cookie de sesión válida + token CSRF (`X-XSRF-TOKEN`).
+REST sobre Laravel 12 + Sanctum modo SPA. Las rutas autenticadas requieren cookie de sesión válida + token CSRF (`X-XSRF-TOKEN`).
 
-Formato de errores estándar Laravel: `{ "message": "...", "errors": { "campo": ["..."] } }`.
-
-Convención de paginación: `?page=1&per_page=50` → `{ data: [...], meta: { total, current_page, last_page } }`.
-
-Convención de fechas: ISO 8601 (`2026-05-20` para `date`, `2026-05-20T14:32:00Z` para `datetime`).
-
----
-
-## Auth (Sanctum SPA)
-
-| Método | Ruta | Descripción | Acceso |
-| --- | --- | --- | --- |
-| GET | `/sanctum/csrf-cookie` | Inicializa la cookie CSRF (lo llama React antes del login) | Público |
-| POST | `/login` | Login con `email` + `password` | Público |
-| POST | `/logout` | Cierra sesión | Auth |
-| GET | `/api/me` | Devuelve usuario autenticado + rol | Auth |
-
-> Nota: `/login` y `/logout` los expone el propio Sanctum/Fortify fuera de `/api`. No son endpoints "REST" propiamente, así que viven en `web.php`.
+**Convenciones**:
+- Errores estándar Laravel: `{ "message": "...", "errors": { "campo": ["..."] } }`. Mensajes en español (`laravel-lang/common` + atributos custom para los campos del proyecto).
+- Paginación Eloquent: `?per_page=50&page=1` → `{ data: [...], links, meta }`.
+- Fechas: ISO 8601 (`2026-05-25` para `date`).
+- Importes: **siempre céntimos** como `int` (`amount_cents`). El frontend formatea con `Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })`.
 
 ---
 
-## Usuarios — `/api/users`
-
-Solo admin para escritura. Lectura: admin lista todos, colaborador solo se ve a sí mismo.
+## Auth — `/api/auth/*` + Sanctum
 
 | Método | Ruta | Descripción | Acceso |
 | --- | --- | --- | --- |
-| GET | `/api/users` | Lista usuarios | Auth (admin ve todos; colab. solo el suyo) |
-| POST | `/api/users` | Crea usuario | Admin |
-| GET | `/api/users/{id}` | Detalle | Auth (admin o propio) |
-| PATCH | `/api/users/{id}` | Actualiza nombre, email, rol, avatar | Admin |
-| PATCH | `/api/users/{id}/password` | Cambia contraseña | Admin o propio (con contraseña actual) |
-| DELETE | `/api/users/{id}` | Elimina | Admin (bloquea si es el último admin) |
+| GET | `/sanctum/csrf-cookie` | Setea cookie `XSRF-TOKEN` (el cliente la lee y la manda en `X-XSRF-TOKEN`) | Público |
+| POST | `/api/auth/login` | Login con `username` + `password` (no email) | Público |
+| POST | `/api/auth/logout` | Cierra sesión, invalida y regenera CSRF | Auth |
+| PATCH | `/api/auth/password` | Cambia contraseña del usuario actual | Auth |
+| GET | `/api/user` | Devuelve usuario autenticado (campos del modelo + `role`, `avatar_initials`) | Auth |
 
-**POST body**
+**Login body**
+```json
+{ "username": "papa", "password": "P1234_apa" }
+```
+Respuesta: `{ "data": { id, name, username, email, role, avatar_initials, ... } }`.
+
+**Cambio de contraseña body**
 ```json
 {
-  "name": "Sara",
-  "email": "sara@example.com",
-  "password": "secreto",
-  "role": "collaborator",
-  "avatar_initials": "SR"
+  "current_password": "P1234_apa",
+  "password": "nuevoSecreto123",
+  "password_confirmation": "nuevoSecreto123"
 }
 ```
+Validación: `current_password` (regla nativa), `password` `min:8` + `confirmed`. Devuelve `204 No Content`. La sesión sigue activa tras el cambio.
 
 ---
 
 ## Miembros de familia — `/api/family-members`
 
-Lectura: cualquiera autenticado. Escritura: admin.
+Lectura: cualquiera autenticado. Mutación: solo admin (gate vía `App\Concerns\EnsuresAdmin`).
 
 | Método | Ruta | Descripción | Acceso |
 | --- | --- | --- | --- |
-| GET | `/api/family-members` | Lista (orden por `display_order`) | Auth |
+| GET | `/api/family-members` | Lista los activos (orden por `display_order`) | Auth |
+| GET | `/api/family-members?include_inactive=true` | Incluye también los inactivos | Admin |
 | POST | `/api/family-members` | Crea | Admin |
-| GET | `/api/family-members/{id}` | Detalle | Auth |
-| PATCH | `/api/family-members/{id}` | Actualiza | Admin |
-| PATCH | `/api/family-members/reorder` | Reordena la lista | Admin |
-| DELETE | `/api/family-members/{id}` | Archiva (`is_active = false`); borra duro si no tiene gastos | Admin |
+| PATCH | `/api/family-members/{familyMember}` | Actualiza | Admin |
+| DELETE | `/api/family-members/{familyMember}` | **Soft delete** (`is_active=false`). Para reactivar: `PATCH` con `{ "is_active": true }` | Admin |
 
-**POST body**
+**POST/PATCH body**
 ```json
-{
-  "name": "Pablo",
-  "color": "#A855F7",
-  "icon": "user",
-  "display_order": 4
-}
+{ "name": "Pablo", "color": "#F97316", "icon": "user", "is_active": true, "display_order": 4 }
 ```
-
-**PATCH /reorder body**
-```json
-{ "ids": [3, 1, 2, 5, 4] }
-```
+Reglas: `name` `required|string|max:60|unique:family_members,name`; `color` regex `^#[0-9A-Fa-f]{6}$`; `icon` `required|string|max:40`; `display_order` `nullable|integer|0..999`. En PATCH todos los campos son `sometimes`.
 
 ---
 
 ## Categorías — `/api/categories`
 
-Mismas reglas que `family_members`.
+Mismas reglas y endpoints que `family-members` (excepto el nombre del parámetro).
 
 | Método | Ruta | Descripción | Acceso |
 | --- | --- | --- | --- |
-| GET | `/api/categories` | Lista | Auth |
+| GET | `/api/categories` | Lista activas | Auth |
+| GET | `/api/categories?include_inactive=true` | Incluye inactivas | Admin |
 | POST | `/api/categories` | Crea | Admin |
-| GET | `/api/categories/{id}` | Detalle | Auth |
-| PATCH | `/api/categories/{id}` | Actualiza | Admin |
-| PATCH | `/api/categories/reorder` | Reordena | Admin |
-| DELETE | `/api/categories/{id}` | Archiva o borra duro | Admin |
+| PATCH | `/api/categories/{category}` | Actualiza | Admin |
+| DELETE | `/api/categories/{category}` | Soft delete | Admin |
 
 ---
 
 ## Gastos — `/api/expenses`
 
+Cualquier usuario autenticado puede crear, editar y borrar **cualquier** gasto (decisión 2026-05-20 — uso interno familiar).
+
 | Método | Ruta | Descripción | Acceso |
 | --- | --- | --- | --- |
-| GET | `/api/expenses` | Lista con filtros + paginación | Auth |
-| POST | `/api/expenses` | Crea gasto puntual | Auth |
-| GET | `/api/expenses/{id}` | Detalle | Auth |
-| PATCH | `/api/expenses/{id}` | Actualiza | Auth (cualquiera) |
-| DELETE | `/api/expenses/{id}` | Elimina | Auth (cualquiera) |
+| GET | `/api/expenses` | Lista paginada con filtros | Auth |
+| POST | `/api/expenses` | Crea gasto (opcional: con serie recurrente) | Auth |
+| GET | `/api/expenses/{expense}` | Detalle | Auth |
+| PATCH | `/api/expenses/{expense}` | Actualiza | Auth |
+| DELETE | `/api/expenses/{expense}` | Hard delete | Auth |
 
 ### GET `/api/expenses` — query params
 
 | Param | Tipo | Descripción |
 | --- | --- | --- |
-| `period` | `day` \| `week` \| `month` | Atajo para las pills del dashboard |
-| `from`, `to` | date | Rango personalizado (anula `period`) |
+| `from`, `to` | date | Rango de `occurred_on` |
 | `category_id` | int | |
 | `family_member_id` | int | |
-| `user_id` | int | Quién lo registró |
-| `q` | string | Busca en `description` |
-| `group_by_day` | boolean | Si true, devuelve agrupado por día con subtotal (historial) |
-| `page`, `per_page` | int | Paginación |
+| `search` | string | LIKE en `description` |
+| `per_page` | int | Default 50, max 200 |
+| `page` | int | Paginación estándar Laravel |
 
-> **Convención de importes**: la API devuelve **siempre** céntimos como `int` (`amount_cents`, `subtotal_cents`, `total_cents`). El frontend formatea con `Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })`.
-
-**Ejemplo respuesta (lista plana)**
-```json
-{
-  "data": [
-    {
-      "id": 12,
-      "amount_cents": 6742,
-      "category": { "id": 1, "name": "Comida", "color": "#F97316", "icon": "utensils" },
-      "family_member": { "id": 2, "name": "Mamá" },
-      "registered_by": { "id": 1, "name": "Sergio" },
-      "description": "Supermercado Lidl",
-      "occurred_on": "2026-05-20",
-      "recurring_expense_id": null
-    }
-  ],
-  "meta": { "total": 32, "current_page": 1, "last_page": 1 }
-}
-```
-
-**Ejemplo respuesta `group_by_day=true`**
-```json
-{
-  "data": [
-    {
-      "date": "2026-05-20",
-      "subtotal_cents": 14357,
-      "expenses": [ /* mismos objetos que arriba */ ]
-    }
-  ]
-}
-```
+Eager-load: `category`, `familyMember`, `registeredBy`. La paginación arrastra los filtros vía `appends($request->query())`.
 
 ### POST `/api/expenses` body
 
@@ -159,120 +105,79 @@ Mismas reglas que `family_members`.
   "category_id": 1,
   "family_member_id": 2,
   "description": "Supermercado Lidl",
-  "occurred_on": "2026-05-20"
-}
-```
-
-`registered_by_user_id` se rellena automáticamente con el usuario autenticado.
-
----
-
-## Gastos recurrentes — `/api/recurring-expenses`
-
-Solo admin.
-
-| Método | Ruta | Descripción | Acceso |
-| --- | --- | --- | --- |
-| GET | `/api/recurring-expenses` | Lista | Admin |
-| POST | `/api/recurring-expenses` | Crea plantilla | Admin |
-| GET | `/api/recurring-expenses/{id}` | Detalle | Admin |
-| PATCH | `/api/recurring-expenses/{id}` | Actualiza | Admin |
-| PATCH | `/api/recurring-expenses/{id}/toggle` | Activa/pausa (`is_active`) | Admin |
-| DELETE | `/api/recurring-expenses/{id}` | Elimina | Admin |
-
-**POST body**
-```json
-{
-  "amount_cents": 1799,
-  "category_id": 3,
-  "family_member_id": 5,
-  "description": "Netflix",
-  "frequency": "monthly",
-  "day_of_month": 1,
-  "starts_on": "2026-05-01",
-  "ends_on": null
-}
-```
-
----
-
-## Estadísticas — `/api/stats`
-
-Endpoints específicos para el dashboard y la cabecera del historial. Reduce viajes y cálculos en el frontend.
-
-| Método | Ruta | Descripción | Acceso |
-| --- | --- | --- | --- |
-| GET | `/api/stats/summary` | KPIs del periodo | Auth |
-| GET | `/api/stats/by-category` | Gastos agrupados por categoría (donut/barras) | Auth |
-| GET | `/api/stats/by-family-member` | Gastos agrupados por persona | Auth |
-
-### `/api/stats/summary?period=month&date=2026-05-15`
-
-```json
-{
-  "period": "month",
-  "from": "2026-05-01",
-  "to": "2026-05-31",
-  "total_cents": 281430,
-  "count": 32,
-  "daily_average_cents": 14072,
-  "vs_previous": {
-    "delta_pct": 8,
-    "previous_total_cents": 260583
+  "occurred_on": "2026-05-20",
+  "recurring": {                         // OPCIONAL — convierte el gasto en serie
+    "day_of_month": 20,                  // 1-31; se hace clamp al último día del mes si no existe
+    "ends_on": "2027-05-31"              // fecha límite inclusive
   }
 }
 ```
 
-### `/api/stats/by-category?period=week`
+Reglas:
+- `amount_cents` `required|integer|min:1|max:99999999`
+- `category_id` `required|integer|exists:categories,id`
+- `family_member_id` `required|integer|exists:family_members,id`
+- `description` `nullable|string|max:160`
+- `occurred_on` `required|date|before_or_equal:today`
+- `recurring.day_of_month` `required_with:recurring|integer|between:1,31`
+- `recurring.ends_on` `required_with:recurring|date|after_or_equal:occurred_on`
+
+`registered_by_user_id` se rellena con `auth()->user()->id` (no se acepta del cliente).
+
+Si llega `recurring`, en una transacción se crea un `RecurringExpense` (frecuencia mensual) y **se materializan todas las instancias futuras** vinculadas con `recurring_expense_id`. Después se crea la instancia del propio `occurred_on`.
+
+### Respuesta de un gasto (`ExpenseResource`)
 
 ```json
 {
-  "total_cents": 124750,
-  "breakdown": [
-    { "category": { "id": 1, "name": "Comida", "color": "#F97316" }, "amount_cents": 52410, "share_pct": 42 },
-    { "category": { "id": 2, "name": "Casa", "color": "#3B82F6" }, "amount_cents": 34930, "share_pct": 28 },
-    { "category": { "id": 3, "name": "Ocio", "color": "#A855F7" }, "amount_cents": 22460, "share_pct": 18 },
-    { "category": { "id": 4, "name": "Familia", "color": "#34D399" }, "amount_cents": 14950, "share_pct": 12 }
-  ]
+  "id": 12,
+  "amount_cents": 6742,
+  "description": "Supermercado Lidl",
+  "occurred_on": "2026-05-20",
+  "recurring_expense_id": null,
+  "category":      { "id": 1, "name": "Comida", "color": "#F97316", "icon": "utensils" },
+  "family_member": { "id": 2, "name": "Mamá",   "color": "#F472B6", "icon": "user" },
+  "registered_by": { "id": 1, "name": "Papá",   "username": "papa" }
 }
 ```
 
-`/api/stats/by-family-member` devuelve la misma estructura pero agrupando por `family_member`.
+### PATCH `/api/expenses/{id}` body
+
+Mismos campos que POST pero todos con `sometimes`. **Editar una instancia de serie afecta solo a esa instancia** — no se propaga a la plantilla ni al resto.
 
 ---
 
-## Resumen de rutas
+## NO hay endpoints para…
+
+- ~~`/api/users`~~ — no hay CRUD admin de usuarios (solo 2 reales). Cambio de password vía `PATCH /api/auth/password`.
+- ~~`/api/recurring-expenses`~~ — sin endpoints propios. Las series se crean al `POST /api/expenses` con `recurring: {...}` y desde ahí cada instancia es un gasto suelto editable individualmente.
+- ~~`/api/stats/*`~~ — los agregados (donut por categoría, comparativa vs mes anterior, promedio diario) se calculan en el cliente. Mover a backend cuando crezca el volumen.
+- ~~`/reorder`~~ — no hay reorden de categorías/miembros vía API (`display_order` se setea al crear/editar).
+
+---
+
+## Resumen de rutas (output real de `php artisan route:list`)
 
 ```
-/sanctum/csrf-cookie          GET    público
-/login                        POST   público
-/logout                       POST   auth
-/api/me                       GET    auth
+GET    sanctum/csrf-cookie
+POST   api/auth/login
+POST   api/auth/logout                   auth:sanctum
+PATCH  api/auth/password                 auth:sanctum
+GET    api/user                          auth:sanctum
 
-/api/users                    GET POST
-/api/users/{id}               GET PATCH DELETE
-/api/users/{id}/password      PATCH
+GET    api/categories                    auth:sanctum
+POST   api/categories                    auth:sanctum (admin)
+PATCH  api/categories/{category}         auth:sanctum (admin)
+DELETE api/categories/{category}         auth:sanctum (admin)
 
-/api/family-members           GET POST
-/api/family-members/{id}      GET PATCH DELETE
-/api/family-members/reorder   PATCH
+GET    api/family-members                auth:sanctum
+POST   api/family-members                auth:sanctum (admin)
+PATCH  api/family-members/{familyMember} auth:sanctum (admin)
+DELETE api/family-members/{familyMember} auth:sanctum (admin)
 
-/api/categories               GET POST
-/api/categories/{id}          GET PATCH DELETE
-/api/categories/reorder       PATCH
-
-/api/expenses                 GET POST
-/api/expenses/{id}            GET PATCH DELETE
-
-/api/recurring-expenses       GET POST
-/api/recurring-expenses/{id}  GET PATCH DELETE
-/api/recurring-expenses/{id}/toggle  PATCH
-
-/api/stats/summary            GET
-/api/stats/by-category        GET
-/api/stats/by-family-member   GET
+GET    api/expenses                      auth:sanctum
+POST   api/expenses                      auth:sanctum
+GET    api/expenses/{expense}            auth:sanctum
+PATCH  api/expenses/{expense}            auth:sanctum
+DELETE api/expenses/{expense}            auth:sanctum
 ```
-
-## Pendientes / a confirmar
-
-(ninguno por ahora — los "últimos N movimientos" del dashboard se resuelven con `GET /api/expenses?per_page=4`).

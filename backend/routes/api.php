@@ -11,6 +11,7 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::patch('/auth/password', [AuthController::class, 'updatePassword']);
     Route::get('/user', fn (Request $request) => $request->user());
 
     Route::apiResource('categories', CategoryController::class)->except(['show']);

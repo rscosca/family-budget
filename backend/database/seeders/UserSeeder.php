@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
             [
                 'name'            => 'Papá',
                 'email'           => 'papa@family.local',
-                'password'        => Hash::make('9d55c25f6306bc61fcd58350e7f16b3d'),
+                'password'        => Hash::make('P1234_apa'),
                 'role'            => 'admin',
                 'avatar_initials' => 'PA',
             ],
@@ -26,17 +26,17 @@ class UserSeeder extends Seeder
             [
                 'name'            => 'Mamá',
                 'email'           => 'mama@family.local',
-                'password'        => Hash::make('eff9e8c58b0b1f3211fabb4b697d2716'),
+                'password'        => Hash::make('M1234_ama'),
                 'role'            => 'collaborator',
                 'avatar_initials' => 'MA',
             ],
         );
 
-        $this->command->info('  ┌──────┬──────────────────────────────────┐');
-        $this->command->info('  │ user │ password                         │');
-        $this->command->info('  ├──────┼──────────────────────────────────┤');
-        $this->command->info('  │ papa │ 9d55c25f6306bc61fcd58350e7f16b3d │');
-        $this->command->info('  │ mama │ eff9e8c58b0b1f3211fabb4b697d2716 │');
-        $this->command->info('  └──────┴──────────────────────────────────┘');
+        $this->command->info('  ┌──────┬───────────┐');
+        $this->command->info('  │ user │ password  │');
+        $this->command->info('  ├──────┼───────────┤');
+        $this->command->info('  │ papa │ P1234_apa │');
+        $this->command->info('  │ mama │ M1234_ama │');
+        $this->command->info('  └──────┴───────────┘');
     }
 }

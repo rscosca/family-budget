@@ -36,10 +36,10 @@ family_members  ──┤                    │
 
 **Seed inicial** (`UserSeeder.php`)
 ```
-papa  admin         email: papa@family.local  (password generada con md5)
-mama  collaborator  email: mama@family.local  (password generada con md5)
+papa  admin         email: papa@family.local  password: P1234_apa
+mama  collaborator  email: mama@family.local  password: M1234_ama
 ```
-Las contraseñas se generan con `md5(uniqid(...))` y se almacenan con `Hash::make()` (bcrypt). El seeder imprime las contraseñas en plano en la consola al ejecutarse — apuntarlas en ese momento.
+Las contraseñas son literales (definidas en el seeder) y se almacenan con `Hash::make()` (bcrypt). El seeder usa `updateOrCreate`, así que `db:seed --class=UserSeeder` actualiza los hashes sin tocar gastos. Cambiar la contraseña desde la app vía `PATCH /api/auth/password` no afecta al seeder.
 
 ---
 
@@ -144,10 +144,12 @@ Familia  #34D399  users
 | `is_active` | boolean | Pausar sin borrar |
 | `created_at`, `updated_at` | timestamps | |
 
-**Reglas**
-- Solo admin.
-- El scheduler de Laravel (`app/Console/Kernel.php`) corre diario, busca recurrentes activos cuya próxima ocurrencia ≤ hoy y crea filas en `expenses` apuntando con `recurring_expense_id`.
-- Si se edita un recurrente, los gastos ya generados NO se reescriben — solo los futuros.
+**Reglas (decisión 2026-05-21)**
+- Solo admin crea series desde el formulario "Nuevo gasto" activando el toggle "Repetir cada mes".
+- **NO hay scheduler**. Al crear la serie se materializan **todas** las instancias futuras hasta `ends_on` en una transacción (`App\Services\RecurringExpenseGenerator`). Cada instancia queda con `expenses.recurring_expense_id` apuntando a la plantilla.
+- Frecuencia única implementada: `monthly`. Si el `day_of_month` no existe en un mes (ej. 31 en febrero), se hace **clamp al último día del mes**.
+- Editar/borrar una instancia afecta **solo** a esa instancia (no se propaga a la plantilla ni al resto). No hay UI de gestión de series — cada instancia es un gasto suelto a efectos prácticos.
+- `last_generated_on` queda como vestigio del esquema original; no se usa en el flujo actual.
 
 ---
 

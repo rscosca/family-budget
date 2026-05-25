@@ -109,38 +109,38 @@ Dark mode con acento amarillo. **Mobile-first y responsive a desktop**: los HTML
 
 ## Estado del proyecto
 
-- [x] Briefing y maquetación HTML
-- [x] Documentación inicial (`docs/`)
-- [x] Decidir base de datos (MySQL) y formato de importes (céntimos)
-- [x] Web normal sin PWA (revisable a futuro)
-- [x] Auth: Laravel Sanctum modo SPA
+### Hecho
+
+- [x] Briefing, maquetación HTML, documentación inicial
+- [x] Decisión BD (MySQL) e importes en céntimos
 - [x] Distinción usuario ↔ miembro de familia
-- [x] Modelo de datos (ver `docs/data-model.md`)
-- [x] Endpoints de la API (ver `docs/api.md`)
-- [x] Definir patrón responsive para desktop (sidebar + contenido fluido)
-- [x] Scaffold backend Laravel 12 + Sanctum SPA + MySQL en `backend/`
-- [x] Scaffold frontend React + Vite + TypeScript en `frontend/`
-- [x] Guía de desarrollo local (`docs/development.md`)
-- [x] Migraciones del modelo de datos (5 tablas) + modelos Eloquent
-- [x] Seeders: 2 usuarios (papa/mama), 5 miembros de familia, 4 categorías
-- [x] Frontend shell: Tailwind v4 + React Router + Lucide, layout responsive (sidebar lg+, bottom-nav móvil), tokens de diseño
-- [x] Páginas stub: Dashboard, Historial, Familia, Ajustes, NuevoGasto, Login
-- **Decisión 2026-05-20**: priorizar mobile-first. Desktop se pulirá al final, por el usuario.
-- [ ] **Próximo**: seeder de gastos puntuales + 1-2 recurrentes para tener datos visibles
-- [ ] Auth real: endpoints `/login`, `/logout`, `/api/me` (login por `username`)
-- [ ] Pantalla de login funcional (formulario + cliente HTTP)
-- [ ] CRUD de family-members y categories
-- [ ] CRUD de gastos + dashboard + historial
-- [ ] Gastos recurrentes + scheduler
-- [ ] Scaffold frontend React
-- [ ] Modelo de datos (users, categories, expenses, recurring_expenses)
-- [ ] Auth y roles
-- [ ] CRUD de gastos
-- [ ] Dashboard
-- [ ] Historial
-- [ ] Gastos recurrentes (modelo + scheduler)
-- [ ] Gestión de categorías
-- [ ] Gestión de usuarios
+- [x] Modelo de datos (5 tablas) + modelos Eloquent — ver `docs/data-model.md`
+- [x] Scaffold backend Laravel 12 + Sanctum SPA + MySQL
+- [x] Scaffold frontend React 19 + Vite + TypeScript + Tailwind v4 + Lucide
+- [x] Seeders: 2 usuarios (`papa`/`mama`), 5 miembros, 4 categorías, 8 recurrentes, ~115 gastos seedeados
+- [x] Auth SPA real: `POST /api/auth/login` (por `username`), `POST /api/auth/logout`, `GET /api/user`, `PATCH /api/auth/password`
+- [x] CRUD `expenses` (cualquier usuario), CRUD admin `categories` y `family-members` (soft delete con `is_active`)
+- [x] Frontend: Dashboard (donut + KPIs + pills día/semana/mes), Historial (nav meses + KPIs + búsqueda + filtros multi cat./miembro), Familia (tarjetas por miembro expandibles), CRUD gastos, CRUD admin, Ajustes (sesión + cambio password + admin links)
+- [x] Gastos recurrentes mensuales — **materializados al crear** (sin scheduler): toggle "Repetir cada mes" en /nuevo-gasto genera todas las instancias futuras hasta `ends_on`. Cada instancia se trata como gasto suelto. Clamp al último día si el `day_of_month` no existe en un mes
+- [x] Validaciones del backend en español (`laravel-lang/common` + atributos custom)
+- [x] Tooling raíz: `.gitignore`, `Makefile` (`make up`, `make seed`, `make api`, …)
+- [x] Repo en github.com/rscosca/family-budget — primer push 2026-05-25
+
+### En curso
+
+- [ ] **Pulir UX móvil** — auditoría hecha 2026-05-25 con 7 fricciones priorizadas (padding bottom-nav, FAB tapando filas, mes inicial Familia, icono soft delete, affordance tarjetas admin, aria-labels grid iconos, focus visible). Ver `~/.claude/projects/-Users-rsaenz-Sites-rscosca-family-budget/memory/project_ux_audit.md`
+
+### Pendiente
+
+- [ ] Tests backend (Pest/PHPUnit) — empezar por feature tests de `ExpenseController` y `AuthController`
+- [ ] Deploy/producción (variables, build de Vite, servidor PHP+MySQL, dominio)
+- [ ] Pulir desktop (decisión 2026-05-20: priorizar mobile-first, desktop al final)
+
+### Descartado / no se hará
+
+- ~~UI de gestión de "series recurrentes"~~ — descartado 2026-05-24. Se tratan como gastos sueltos a partir de la creación.
+- ~~CRUD admin de usuarios~~ — descartado 2026-05-25 (solo 2 usuarios reales). Solo queda el form "Cambiar contraseña" en Ajustes.
+- ~~Endpoints `/api/stats/*`~~ — los agregados (donut, comparativa mes, promedio diario) se calculan en el cliente con los gastos ya cargados. Mover a backend cuando crezca el volumen.
 
 ## Estructura del repositorio
 
