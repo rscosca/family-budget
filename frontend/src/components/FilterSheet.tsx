@@ -85,7 +85,7 @@ export default function FilterSheet({
                     type="button"
                     onClick={() => onToggleCategory(c.id)}
                     aria-pressed={selected}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-[var(--radius-btn)] border text-sm font-medium transition"
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-[var(--radius-btn)] border text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition"
                     style={
                       selected
                         ? {
@@ -118,7 +118,7 @@ export default function FilterSheet({
                     type="button"
                     onClick={() => onToggleMember(m.id)}
                     aria-pressed={selected}
-                    className="px-4 py-2 rounded-[var(--radius-pill)] border text-sm font-medium transition"
+                    className="px-4 py-2 rounded-[var(--radius-pill)] border text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition"
                     style={
                       selected
                         ? {

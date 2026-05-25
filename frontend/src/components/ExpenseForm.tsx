@@ -239,7 +239,8 @@ export default function ExpenseForm({
                 type="button"
                 key={m.id}
                 onClick={() => setMemberId(m.id)}
-                className={`rounded-[var(--radius-pill)] px-4 py-2 text-sm transition ${
+                aria-pressed={active}
+                className={`rounded-[var(--radius-pill)] px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition ${
                   active ? 'text-fg' : 'text-muted border border-border hover:text-fg'
                 }`}
                 style={

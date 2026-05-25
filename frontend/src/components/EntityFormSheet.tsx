@@ -174,7 +174,9 @@ export default function EntityFormSheet({
                     type="button"
                     onClick={() => setIcon(name)}
                     aria-pressed={selected}
-                    className="aspect-square rounded-[var(--radius-btn)] border flex items-center justify-center transition"
+                    aria-label={name}
+                    title={name}
+                    className="aspect-square rounded-[var(--radius-btn)] border flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition"
                     style={
                       selected
                         ? { backgroundColor: `${color}26`, borderColor: color, color }

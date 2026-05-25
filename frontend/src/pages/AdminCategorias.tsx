@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { ChevronLeft, Plus, RotateCcw, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Power, RotateCcw } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import EntityFormSheet, { type EntityFormValues } from '../components/EntityFormSheet'
 import { useAuth } from '../context/AuthContext'
@@ -91,7 +91,7 @@ export default function AdminCategorias() {
             setEditing(c)
             setSheetOpen(true)
           }}
-          className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 transition"
+          className="flex items-center gap-3 flex-1 min-w-0 text-left rounded-[var(--radius-btn)] hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition"
         >
           <div
             className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
@@ -103,22 +103,23 @@ export default function AdminCategorias() {
             <div className="font-display font-semibold truncate">{c.name}</div>
             <div className="text-xs text-muted font-mono">{c.color}</div>
           </div>
+          <ChevronRight size={16} className="text-muted shrink-0" />
         </button>
         {c.is_active ? (
           <button
             type="button"
             onClick={() => handleDelete(c)}
             aria-label="Desactivar"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/10 transition shrink-0"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-muted hover:text-fg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition shrink-0"
           >
-            <Trash2 size={18} />
+            <Power size={18} />
           </button>
         ) : (
           <button
             type="button"
             onClick={() => handleReactivate(c)}
             aria-label="Reactivar"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-emerald-400 hover:bg-emerald-500/10 transition shrink-0"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-emerald-400 hover:bg-emerald-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition shrink-0"
           >
             <RotateCcw size={18} />
           </button>
